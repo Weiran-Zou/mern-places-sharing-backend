@@ -5,7 +5,18 @@ const getCoordsForAddress = require("../utils/location");
 const Place = require("../models/place");
 const User = require("../models/user");
 const mongoose = require("mongoose");
-const fs = require('fs');
+
+const getPlaces = async (req, res, next) => {
+    let places;
+    try {
+        places = await Place.find({}).sort({createdAt: -1}).populate('creator', 'name image');
+    } catch(err) {
+        const error = new HttpError("Could not get users, please try agian later.", 500);
+        return next(error);
+    }
+
+    res.json({places: places.map(p => p.toObject( {getters: true} ))});
+}
 
 const getPlaceById = async (req, res, next) => {
     const placeId = req.params.pid;
@@ -182,6 +193,7 @@ const deletePlace = async (req, res, next) => {
     
 }
 
+exports.getPlaces = getPlaces;
 exports.getPlaceById = getPlaceById;
 exports.getPlacesByUserId = getPlacesByUserId;
 exports.createPlace = createPlace;

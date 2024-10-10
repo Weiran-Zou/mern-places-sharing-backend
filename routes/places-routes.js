@@ -6,6 +6,8 @@ const fileUpload = require("../middleware/file-upload")
 const checkAuth = require('../middleware/check-auth');
 const CloudinaryUpload = require("../middleware/cloudiary-upload");
 
+router.get('/', placesControllers.getPlaces);
+
 router.get('/:pid', placesControllers.getPlaceById);
 
 router.get('/user/:uid', placesControllers.getPlacesByUserId);
