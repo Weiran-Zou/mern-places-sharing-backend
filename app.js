@@ -5,8 +5,7 @@ const usersRoutes = require("./routes/users-routes");
 const HttpError = require("./models/http-error");
 const app = express();
 const mongoose = require('mongoose');
-const fs = require('fs');
-const path = require('path');
+require('dotenv').config();
 
 //app.use(bodyParser.json());
 app.use(bodyParser.json({ limit: '10mb' }));
@@ -39,6 +38,7 @@ app.use((error, req, res, next) => {
 mongoose.connect(`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.5mngh.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority&appName=Cluster0`)
         .then(() => {
             app.listen(process.env.PORT || 5000);
+            console.log(`app is listening on port ${process.env.PORT || 5000}`);
         })
         .catch(err => {
             console.log(err);
