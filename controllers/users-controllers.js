@@ -5,17 +5,19 @@ const User = require('../models/user');
 var bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const getUsers = async (req, res, next) => {
-    let users;
+const getUser = async (req, res, next) => {
+    let userId = req.params.uid;
+    let user;
     try {
-        users = await User.find({}, { password: 0 });
+        user = await User.findById(userId, 'image name').exec();
     } catch(err) {
         const error = new HttpError("Could not get users, please try agian later.", 500);
         return next(error);
     }
 
-    res.json({users: users.map(u => u.toObject( {getters: true} ))});
+    res.json({user: user.toObject( {getters: true} )});
 }
+
 
 const signup = async (req, res, next) => {
     const errors = validationResult(req);
@@ -121,6 +123,7 @@ const login = async (req, res, next) => {
     res.json({userId: existingUser.id, email: existingUser.email, token: token});
 }
 
-exports.getUsers = getUsers;
+// exports.getUsers = getUsers;
+exports.getUser = getUser;
 exports.signup = signup;
 exports.login = login;

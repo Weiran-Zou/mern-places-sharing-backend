@@ -5,7 +5,7 @@ const { check } = require("express-validator");
 const fileUpload = require("../middleware/file-upload")
 const CloudinaryUpload = require("../middleware/cloudiary-upload");
 
-router.get('/', usersControllers.getUsers);
+router.get('/:uid', usersControllers.getUser)
 
 router.post('/signup', 
     fileUpload.single('image'),
