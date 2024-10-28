@@ -85,6 +85,7 @@ const login = async (req, res, next) => {
     let existingUser;
     try {
         existingUser = await User.findOne({ email: email })
+        console.log(existingUser)
     } catch(err) {
         const error = new HttpError("Log in fail, please try agian later.", 500);
         return next(error);
@@ -120,7 +121,7 @@ const login = async (req, res, next) => {
         return next(error);
     }
     console.log( existingUser.id)
-    res.json({userId: existingUser.id, email: existingUser.email, token: token});
+    res.json({userId: existingUser.id, email: existingUser.email, userImage: existingUser.image, token: token});
 }
 
 // exports.getUsers = getUsers;
