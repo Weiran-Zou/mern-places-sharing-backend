@@ -22,7 +22,7 @@ const getPlaceById = async (req, res, next) => {
     const placeId = req.params.pid;
     let place;
     try {
-        place = await Place.findById(placeId).exec();
+        place = await Place.findById(placeId).populate('creator', 'name image').exec();
     } catch(err) {
         const error = new HttpError("Something went wrong, could not find a place", 500)
         return next(error);
