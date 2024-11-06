@@ -172,8 +172,6 @@ const deletePlace = async (req, res, next) => {
         return next(error);
     }
 
-    const imagePath = place.image;
-
     const session = await mongoose.startSession();
     try {
         await session.withTransaction(async () => {
@@ -193,9 +191,32 @@ const deletePlace = async (req, res, next) => {
     
 }
 
+const likePlace = async (req, res, next) => {
+    const placeId = req.params.pid;
+    let place;
+    try {
+        place = await Place.findById(placeId);
+    } catch(err) {
+        const error = new HttpError("Something went wrong, could not like a place", 500)
+        return next(error);
+    } 
+    place.likeCount++;
+    
+    try {
+        await place.save();
+    } catch (err) {
+        const error = new HttpError("Something went wrong, could not like a place", 500)
+        return next(error);
+    }
+
+    res.status(200).json({message: "Place liked"});
+}
+
+
 exports.getPlaces = getPlaces;
 exports.getPlaceById = getPlaceById;
 exports.getPlacesByUserId = getPlacesByUserId;
 exports.createPlace = createPlace;
 exports.updatePlace = updatePlace;
 exports.deletePlace = deletePlace;
+exports.likePlace = likePlace;
