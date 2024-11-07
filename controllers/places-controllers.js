@@ -1,10 +1,11 @@
 const HttpError = require("../models/http-error");
+const mongoose = require("mongoose");
 const { v4: uuidv4 } = require('uuid');
 const { validationResult } = require('express-validator');
 const getCoordsForAddress = require("../utils/location");
 const Place = require("../models/place");
 const User = require("../models/user");
-const mongoose = require("mongoose");
+const Like = require("../models/like");
 
 const getPlaces = async (req, res, next) => {
     let places;
@@ -200,16 +201,44 @@ const likePlace = async (req, res, next) => {
         const error = new HttpError("Something went wrong, could not like a place", 500)
         return next(error);
     } 
-    place.likeCount++;
-    
     try {
-        await place.save();
-    } catch (err) {
+        // find out if the place is already liked by the user
+        like = await Like.findOne( {place: placeId, user: req.userData.userId} )
+    } catch(err) {
+        
         const error = new HttpError("Something went wrong, could not like a place", 500)
         return next(error);
     }
-
-    res.status(200).json({message: "Place liked"});
+    const session = await mongoose.startSession();
+    try {
+        if (!like) {
+            await session.withTransaction(async () => {
+                place.likeCount++;
+                let newLike = new Like({
+                    place: placeId,
+                    user: req.userData.userId
+                })
+                await newLike.save( {session} );
+                await place.save( {session} );
+                await session.commitTransaction();
+            });
+            res.status(200).json({message: "Liked place!"});
+        } else {
+            await session.withTransaction(async () => {
+                place.likeCount--;
+                await place.save( {session} );
+                await like.deleteOne( {session} );
+                await session.commitTransaction();
+            });
+            res.status(200).json({message: "Unliked place!"});
+        }
+     
+    } catch(err) {
+        const error = new HttpError("Something went wrong, could not like a place", 500)
+        return next(error);
+    } finally {
+        session.endSession();
+    }
 }
 
 

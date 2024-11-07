@@ -12,8 +12,6 @@ router.get('/:pid', placesControllers.getPlaceById);
 
 router.get('/user/:uid', placesControllers.getPlacesByUserId);
 
-router.patch('/:pid/like', placesControllers.likePlace);
-
 router.use(checkAuth);
 
 router.post('/', 
@@ -41,5 +39,7 @@ router.patch('/:pid',
     placesControllers.updatePlace);
 
 router.delete('/:pid', placesControllers.deletePlace);
+
+router.patch('/:pid/like', placesControllers.likePlace);
 
 module.exports = router;
