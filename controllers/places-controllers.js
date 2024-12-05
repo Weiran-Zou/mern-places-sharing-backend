@@ -5,23 +5,9 @@ const getCoordsForAddress = require("../utils/location");
 const Place = require("../models/place");
 const User = require("../models/user");
 const Like = require("../models/like");
-const jwt = require('jsonwebtoken');
+const getCurrentUserId = require("../utils/auth");
+const getPlacesWithLikes = require("../utils/place");
 
-// attempt to get the userId from token
-const getCurrentUserId = (req) => {
-    try {
-        const token = req.headers.authorization.split(' ')[1];
-       
-        if (token) {
-            const decodeToken = jwt.verify(token, 'supersecret_dont_share');
-            return decodeToken.userId
-        } else {
-            return null
-        }
-    } catch (err) {
-        return null
-    }
-}
 
 const getPlaces = async (req, res, next) => {
     const currentUserId = getCurrentUserId(req);
@@ -30,44 +16,7 @@ const getPlaces = async (req, res, next) => {
 
     // logged-in user
     if (currentUserId) {
-        places = await Place.aggregate([
-            // join places with likes collection and filter by place id and current user
-            {
-              $lookup: {
-                from: "likes", 
-                let: { placeId: "$_id" }, 
-                pipeline: [
-                  {
-                    $match: {
-                        $expr: {
-                            $and: [
-                              { $eq: ["$place", "$$placeId"] },
-                              { $eq: ["$user", new mongoose.Types.ObjectId(currentUserId)] }, // check if the place is liked by current user
-                            ],
-                        },
-                    },
-                  },
-                ],
-                as: "likes", 
-              }
-            },
-            // Add isLiked boolean field based on if this place is liked by the current user
-            {
-              $addFields: {
-                isLiked: { $gt: [{ $size: "$likes" }, 0] },
-              }
-            },
-            // Remove likes array
-            {
-              $project: {
-                likes: 0,
-              }
-            },
-            {
-                $sort: { createdAt: -1 },
-            }
-          ])
-        places = await Place.populate(places, {path: 'creator', select: ['name', 'image']})
+        places = await getPlacesWithLikes(currentUser = currentUserId);
         res.json({places: places});
     } else {
         try {
@@ -99,30 +48,32 @@ const getPlaceById = async (req, res, next) => {
 }
 
 const getPlacesByUserId = async (req, res, next) => {
-    const currentUserId = getCurrentUserId();
-    // get places indicating if the current user has liked them
-    if (currentUserId) {
-
-    } else {
-        
-    }
     const userId = req.params.uid;
     let places;
-    try {
-        // userWithPlaces = await User.findById(userId).popluate('places');
-        places = await Place.find({creator: userId}).sort({createdAt: -1}).populate('creator', 'name image');       
-    } catch(err) {
-        const error = new HttpError("Something went wrong, could not find places", 500)
-        return next(error);
+    const currentUserId = getCurrentUserId(req);
+    // get places indicating if the current user has liked them
+    if (currentUserId) {
+        places = await getPlacesWithLikes(currentUserId, {creator: new mongoose.Types.ObjectId(userId)})
+        res.json({places: places});
+    } else {
+        try {
+            // userWithPlaces = await User.findById(userId).popluate('places');
+            places = await Place.find({creator: userId}).sort({createdAt: -1}).populate('creator', 'name image');       
+        } catch(err) {
+            const error = new HttpError("Something went wrong, could not find places", 500)
+            return next(error);
+        }
+       
+    
+        if (!places || places.length === 0) {
+            return next(
+                new HttpError("Could not find a place for the provided user id.", 404)
+            );
+        }
+        res.json({places: places.map((p) => p.toObject({getters: true}))});
     }
-   
-
-    if (!places || places.length === 0) {
-        return next(
-            new HttpError("Could not find a place for the provided user id.", 404)
-        );
-    }
-    res.json({places: places.map((p) => p.toObject({getters: true}))});
+    
+    
 }
 
 const createPlace = async (req, res, next) => {
