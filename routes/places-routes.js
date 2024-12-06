@@ -42,4 +42,6 @@ router.delete('/:pid', placesControllers.deletePlace);
 
 router.patch('/:pid/like', placesControllers.likePlace);
 
+router.get('/user/:uid/likes', placesControllers.getPlacesLikedByUser);
+
 module.exports = router;

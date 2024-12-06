@@ -260,6 +260,14 @@ const likePlace = async (req, res, next) => {
     }
 }
 
+const getPlacesLikedByUser = async (req, res, next) => {
+    const uid = req.params.uid;
+    let places = await Like.find({user: uid}).populate('place');
+    places = places.map(p => p.place);
+    places = await Place.populate(places, ['creator', 'name image']);
+    places = places.map(p => p.toObject({getters: true}))
+    res.status(200).json({places});
+}
 
 exports.getPlaces = getPlaces;
 exports.getPlaceById = getPlaceById;
@@ -268,3 +276,4 @@ exports.createPlace = createPlace;
 exports.updatePlace = updatePlace;
 exports.deletePlace = deletePlace;
 exports.likePlace = likePlace;
+exports.getPlacesLikedByUser = getPlacesLikedByUser;
