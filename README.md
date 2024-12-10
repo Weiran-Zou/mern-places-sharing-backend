@@ -1,12 +1,12 @@
 # PlaceShare MERN Application Backend
 
 ## Introduction
-An Express application integrating with MongoDB for handling requests for PlaceShare app.
-The backend includes the following key features:
-- Created RESTful API endpoints to handle user and place-related requests 
-- Implemented JWT-based authentication and authorization to manage secure, stateless session
-- Integrated MongoDB for data storage and interaction using Mongoose 
-- Enabled image uploading and management via Cloudinary
+The backend of the PlaceShare MERN app is developed using Express.js, Node.js, and MongoDB for handling user and place-related requests.  
+It includes the following key features:
+- RESTful API endpoints to handle user and place-related requests 
+- JWT-based authentication and authorization to manage secure, stateless session
+- Integration with MongoDB for data storage and interaction using Mongoose 
+- Cloudinary integration for image upload and management
 
 ## Technologies used
 - Express.js
